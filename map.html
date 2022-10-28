@@ -40,40 +40,49 @@
         showIndoorMap: false,
       })
 
-      var icon = {
-        type: 'image',
-        image: 'https://a.amap.com/jsapi_demos/static/demo-center/marker/express2.png',
-        size: [42, 20],
-        anchor: 'center'
-      }
-
       var labelsLayer = new AMap.LabelsLayer({
         zooms: [3, 20],
         zIndex: 1000,
         collision: true,
         allowCollision: true
       })
-
+      const self = this
       $.get('http://120.55.13.183:88/app/shop/list', {}, function (data) {
         const _arr = []
+
         data['data'].map(item => {
-          let text  = {
-            content: item['name'],
-            direction: 'right',
-            offset: [-10, -3],
-            style: {
-              fontSize: 12,
-              fillColor: '#22886f',
-              strokeColor: '#fff',
-              strokeWidth: 2
-            }
-          }
-          _arr.push(new AMap.LabelMarker({
+          let marker = new AMap.LabelMarker({
             position: [item['longitude'], item['latitude']],
             zIndex: 16,
-            icon: icon,
-            text: text
-          }))
+            icon: {
+              type: 'image',
+              image: item['logo'],
+              size: [50, 50],
+              anchor: 'center'
+            },
+            text: {
+              content: item['name'],
+              direction: 'right',
+              offset: [5, 0],
+              style: {
+                fontSize: 12,
+                fillColor: '#fff',
+                strokeColor: 'red',
+                strokeWidth: 3
+              }
+            }
+          })
+          let infoWindow = new AMap.InfoWindow({
+            offset: new AMap.Pixel(0, -30),
+            content: `<div style="color: #333; font-size: 12px; background: #fff">${item.address}</div>`
+          })
+          marker.on('mouseover', function(e){
+            infoWindow.open(map, [item['longitude'], item['latitude']])
+          })
+          marker.on('mouseout', function(e){
+            infoWindow.close(map, [item['longitude'], item['latitude']])
+          })
+          _arr.push(marker)
         })
         labelsLayer.add(_arr)
         map.add(labelsLayer)
